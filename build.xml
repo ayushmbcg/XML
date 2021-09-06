@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xdb="http://exist-db.org/ant" default="all" name="Public Application Repository">
+    <property file="local.build.properties"/>
+    <property file="build.properties"/>
+    <property name="build" value="./build"/>
+    <!-- <property name="server.url" value="http://exist-db.org/exist/apps/public-repo/publish"/> -->
+    <condition property="git.commit" value="${git.commit}" else="">
+        <isset property="git.commit"/>
+    </condition>
+    <target name="all" depends="xar"/>
+    <target name="rebuild" depends="clean,all"/>
+    <target name="clean">
+        <delete dir="${build}"/>
+        <delete file="expath-pkg.xml"/>
+    </target>
+    <target name="xar">
+        <mkdir dir="${build}"/>
+        <copy file="expath-pkg.xml.tmpl" tofile="expath-pkg.xml" filtering="true" overwrite="true">
+            <filterset>
+                <filter token="project.name" value="${project.name}"/>
+                <filter token="project.version" value="${project.version}"/>
+            </filterset>
+        </copy>
+        <zip destfile="${build}/${project.name}-${project.version}${git.commit}.xar">
+            <fileset dir=".">
+                <include name="*.*"/>
+                <exclude name=".*"/>
+                <include name="modules/**"/>
+                <include name="resources/**"/>
+                <include name="templates/**"/>
+                <include name="meta/*"/>
+                <exclude name="${build}/*"/>
+                <exclude name="*.tmpl"/>
+                <exclude name="*.properties"/>
+                <exclude name="public/*"/>
+            </fileset>
+        </zip>
+    </target>
+    <!--
+    <target name="upload">
+        <input message="Enter password:" addproperty="server.pass" defaultvalue="">
+            <handler type="secure"/>
+        </input>
+        <property name="xar" value="${project.name}-${project.version}${git.commit}.xar"/>
+        <exec executable="curl">
+            <arg line="-T ${build}/${xar} -u repo:${server.pass} ${server.url}/${xar}"/>
+        </exec>
+    </target>
+    -->
+</project>
